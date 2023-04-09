@@ -40,7 +40,7 @@ public class CategoryController {
 
     }
     @DeleteMapping
-    public R<String> delete ( Long ids){
+    public R<String> delete (Long ids){
         log.info("删除id{}",ids);
 
 
