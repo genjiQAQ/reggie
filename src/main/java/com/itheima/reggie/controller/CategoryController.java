@@ -35,7 +35,6 @@ public class CategoryController {
         LambdaQueryWrapper<Category> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.orderByDesc(Category::getSort);
         categoryService.page(pageInfo,queryWrapper);
-
         return R.success(pageInfo);
 
     }
