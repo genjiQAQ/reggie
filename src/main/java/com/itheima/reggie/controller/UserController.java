@@ -10,6 +10,7 @@ import jakarta.servlet.http.HttpSession;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -18,6 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.lang.invoke.LambdaMetafactory;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 @RestController
 @RequestMapping("/user")
@@ -25,6 +27,9 @@ import java.util.Map;
 public class UserController {
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private RedisTemplate redisTemplate;
 
 
 
@@ -35,8 +40,11 @@ public class UserController {
 //            String code = ValidateCodeUtils.generateValidateCode(4).toString();
             String code="1234";
             log.info(code);
+
 //            SMSUtils.sendMessage("瑞吉外卖","SMS_275805208",phone,code);
-            session.setAttribute(phone,code);
+            redisTemplate.opsForValue().set(phone,code,1, TimeUnit.MINUTES);
+
+            //session.setAttribute(phone,code);
             return R.success("发送成功");
 
         }
@@ -52,7 +60,8 @@ public class UserController {
 
             log.info(code);
 
-            Object attribute = session.getAttribute(phone);
+            //Object attribute = session.getAttribute(phone);
+            Object attribute = redisTemplate.opsForValue().get(phone);
             if (attribute!=null&&attribute.equals(code)){
                 LambdaQueryWrapper<User> queryWrapper=new LambdaQueryWrapper<>();
                 queryWrapper.eq(User::getPhone,phone);
@@ -65,7 +74,7 @@ public class UserController {
                 }
 
                 session.setAttribute("user",count.getId());
-
+                redisTemplate.delete(phone);
                 return R.success(count);
 
             }
